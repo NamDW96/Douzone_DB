@@ -763,24 +763,762 @@ select deptno, dname, loc, null from dept;
 -- 초급 개발자 의무적으로 해야하는 코드 (단일 테이블 select)
 -- 오라클.pdf (47 page)
 
+show user;
+select sysdate from dual;
+
+/*
+단일 행 함수의 종류 
+1) 문자형 함수 : 문자를 입력 받고 문자와 숫자 값 모두를 RETURN 할 수 있다.
+2) 숫자형 함수 : 숫자를 입력 받고 숫자를 RETURN 한다.
+3) 날짜형 함수 : 날짜형에 대해 수행하고 숫자를 RETURN 하는 MONTHS_BETWEEN 함수를
+제외하고 모두 날짜 데이터형의 값을 RETURN 한다.
+4) 변환형 함수 : 어떤 데이터형의 값을 다른 데이터형으로 변환한다.
+5) 일반적인 함수 : NVL, DECODE
+*/
+
+--문자열 함수 
+
+select initcap('the usper man') from dual; --단어의 첫글자를 대문자로
+
+select lower('AAA'), upper('aaa') from dual;
+
+select ename , lower(ename)as ename from emp;
+select ename , lower(ename)as ename from emp;
+
+select * from emp where lower(ename) = 'king';
+
+select length('abcd') from dual; --문자열의 개수
+
+select length('홍길동') from dual; --3개
+
+select length('      홍  길  동 a') from dual; -- 15개 공백도 문자열로 읽음
+
+select concat('a','b') from dual;
+--select concat('a','b','c','d') from dual;
+select 'a' || 'b' || 'c' from dual;
+
+select concat(ename,job) from emp;
+select ename || ' ' || job  from emp;
+
+-- JAVA : substring
+-- ORACLE : substr
+
+select substr('ABCDE',2,3) from dual; --BCD 번호로부터'2' n개('3')를 출력 (시작점은 1이다)
+select substr('ABCDE'1,1) from dual; --A 
+select substr('ABCDE'3,1) from dual;
+
+select substr('dfsfdfsfdsfsxxzfsfsfsdfs',3) from dual;
+
+/*
+사원테이블에서 ename 컬럼의 데이터에 대해서 첫글자는 소문자로 나머지 글자는 대문자로 출력하되
+하나의 컬름으로 만들어서 출력하고, 컬럼의 별칭은 fullname 하고 첫글자와 
+나머지 문자 사이에는 공백 하나를 작성
+*/
+
+select lower(substr(ename,1,1)) from emp;
+select upper(substr(ename,2)) from emp ;
+select upper(substr(ename,2,length(ename))) from emp;
+
+select lower(substr(ename,1,1)) ||' '|| upper(substr(ename,2)) as fullname
+from emp;
+
+select lpad('ABC',10,'*') from dual; --*******ABC
+
+select rpad('ABC',10,'*') from dual; --ABC*******
+
+select rpad('ABC',5,'%') from dual; --ABC%%
+
+-- 사용자의 비번 : kong1004 or k1234
+-- 화면 출력 : ko****** or k1***
+
+select rpad(substr('hong1004',1,2),length('hong1004'),'*') from dual;
+select rpad(substr('k1234',1,2),length('k1234'),'*')from dual;
+
+-- emp 테이블에서 ename 컬럼의 데이터를 출력하되 첫글자만 출력하고 나머지는 * 출력하세요
+
+select rpad(substr(ename,1,1),length(ename),'*') as ename from emp;
+
+create table member2(
+    id number,
+    jumin varchar2(14)
+);
+
+insert into member2(id,jumin) values(100,'123456-1234567');
+insert into member2(id,jumin) values(200,'234567-2345678');
+commit;
+
+select * from member2;
+
+select id ||' : '|| rpad(substr(jumin,1,7),length(jumin),'*') as jumin from member2;
+
+--rtrim 함수
+--오른쪽 문자를 지워라
+select rtrim('MILLER','ER') from dual; --MILL
+
+--ltrim
+--왼쪽 문자를 지워라
+select ltrim('MILLLLLLER','MIL') from dual; --ER
+
+--공백제거
+--select '>' ||'MILLAR'|| '<' from dual;
+
+select '>' || rtrim('MILLAR              ',' ')|| '<' from dual;
+select '>' || ltrim('MILLAR              ',' ')|| '<' from dual;
+
+--치환함수
+select ename, replace(ename,'A','와우') from emp;
+
+--숫자함수
+--round (반올림함수)
+--trunc (절삭함수)
+--mod() 나머지 구하는 함수
+
+--    0(정수)
+select round(12.345,0) as r from dual;  --정수부만 남겨라
+
+select round(12.567,0) as r from dual; --13
+
+select round(12.345,1) as r from dual; --12.3
+
+select round(12.567,1) as r from dual; --12.6
+
+select round(12.345,-1) as r from dual; -- 10
+
+select round(15.345,-1) as r from dual; --20
+
+select round(12.567,-2) as r from dual; --0
+
+
+
+--trunc 버림
+select trunc(12.345,0) as r from dual;  --12
+
+select trunc(12.567,0) as r from dual; --12
+
+select trunc(12.345,1) as r from dual; --12.3
+
+select trunc(12.567,1) as r from dual; --12.5
+
+select trunc(12.345,-1) as r from dual; -- 10
+
+select trunc(15.345,-1) as r from dual; --10
+
+select trunc(12.567,-2) as r from dual; --0
+
+--나머지
+
+select 12/10 from dual; --1.2 몫과 나머지
+
+select mod(12, 10) from dual; -- 나머지 함수
+
+select mod(0,0) from dual; --0으로 나눌 수 있다
+
+select mod(50,0) from dual;
+---------------------------------------------
+
+-- 날짜 함수 (연산)
+
+select sysdate from dual;
+--POINT
+--1. Date + Number >> DATE
+--2. Date - Number >> DATE
+--3. Date - Date   >> Number  (일수) ^^
+
+select sysdate + 100 from dual;
+select sysdate + 1000 from dual;
+select sysdate - 1000 from dual;
+
+select hiredate from emp;
+
+select months_between('2022-09-27','2020-09-27') from dual; --개월을 구하는 함수
+select trunc(months_between('2022-09-27','2020-09-27'),0) from dual; --trunc 을 사용해서 소숫점을 버림(정확한 개월수만 구함)
+
+select months_between(sysdate, '2020-01-01') from dual;
+select trunc(months_between(sysdate, '2020-01-01'),0) from dual;
+
+--주의사항
+select '2022-01-01' + 100 from dual; --'2022-01-01'을 [날짜형식]이지만 문자열로 생각한다
+--해결 함수 : 문자를 날짜로 변경하는 함수 to_date()
+
+select to_date('2022-01-01') + 100 from dual;
+
+
+-- 사원테이블에서 사원들의 이사일에서 현재날짜까지의 근속 월수를 구하세요.
+-- 사원이름, 입사일, 근속월수 출력
+-- 단 근속월수는 정수부만 출력
+
+select ename,hiredate,trunc(months_between(sysdate, hiredate),0) as 근속월수 from emp;
+
+--한달이 31일 이라고 가정하고 ..... 기준에서 근 속 월수를 구하세요
+--함수는 사용하지 마세요 (반올림하지마세요_)
+
+select ename,hiredate,trunc((sysdate-hiredate)/31,0) as 근속월수 from emp;
+
+----------------------------------------------------------------------------
+--------------------문자함수, 숫자함수, 날짜함수 END---------------------------
+
+--변환함수 TODAY POINT
+--오라클 데이터 유형 : 문자열, 숫자, 날짜
+
+--to_char() : 숫자 -> 형식문자 (100000(숫자) -> $100,000(문자)) >> format 출력형식정의
+--to_char() : 날짜 -> 형식문자 ('2023-01-01' -> 2023년01월01일) >> format 출력형식정의
+
+
+--to_date() : 문자(날짜형식) -> 날짜
+--select to_date('2023-01-01') + 100 from dual;
+
+--to_number() : 문자 -> 숫자 (자동 형변환)
+select '100' + 100 from dual;
+select to_number('100') + 100 from dual; 
+--둘의 결과가 같다 to_number는크게 사용되지 않음.
+
+--변환시 표 참조(오라클 교재 69~71 page)
+--형식 format
+
+select sysdate , to_char(sysdate,'YYYY') || '년' as yyyy ,
+to_char(sysdate, 'YEAR') as YEAR ,
+to_char(sysdate, 'MM') as MM ,
+to_char(sysdate, 'DD') as DD ,
+to_char(sysdate, 'DAY') as DAY
+from dual;
+
+-- 입사일이 12월인 사원의 사번, 이름, 입사일, 입사년도, 입사월을 출력하세요.
+
+select empno, ename, hiredate ,to_char(hiredate,'YYYY') as 입사년도 ,to_char(hiredate, 'MM') 입사월
+from emp
+where to_char(hiredate,'MM') ='12';
+
+
+select '>'|| to_char(12345,'999999999999')|| '<' from dual; --공백출력
+
+select '>'|| ltrim(to_char(12345,'999999999999'),' ')|| '<' from dual; -- 공백제거
+
+select '>'|| to_char(12345,'$999,999,999,999,999,999') || '<' from dual;
+
+select sal ,to_char(sal,'$999,999')as 급여 from emp;
+
+-- HP계정 이동
+
+show user;
+select * from employees;
+
+--select first_name || last_name as fullname
+
+select concat(first_name,last_name) as fullname, to_char(hire_date,'YYYY_MM_DD') as 입사일, to_char((SALARY*12)*1.1,'$999,999,999,999,999,999') as 연봉인상액
+from employees
+where to_char(hire_date,'YYYY') >= '2005' 
+order by 연봉인상액 desc; 
+--select 한 결과를 정렬하기 때문에 select 컬럼명
+
+show user;
+
+select 'A' as a, 10 as b, null as c, empno from emp;
+from emp;
+---------------------------------------------------------------------
+--문자, 숫자, 날짜, 변환함수(to_..)
+---------------------------------------------------------------------
+--일반함수 (프로그래밍 성격이 강하다)
+--SQL (변수, 제어문 개념이 없다)
+--PL-SQL (programming language)(변수, 제어문 ......)고급기능 (트리거, 커서, 프로시져)
+
+--nvl() null 처리하는 함수
+--decode() >> java의 if문    >> 통계 데이터(분석) >> pivot , cube , rollup
+--case() >> java switch문
+
+
+select comm, nvl(comm,0) from emp;
+
+create table t_emp(
+    id number(6), --정수 6자리
+    job nvarchar2(20) --unicode 영문자, 한글 2byte ...... 20자 >>40byte
+);
+
+delete table t_emp;
+
+desc t_emp;
+
+insert into t_emp(id,job) values(100,'IT');
+insert into t_emp(id,job) values(200,'SALES');
+insert into t_emp(id,job) values(300,'MANAGER');
+insert into t_emp(id,job) values(400);
+insert into t_emp(id,job) values(500,'MANAGER');
+commit;
+
+select * from t_emp;
+
+select id, decode(id,100,'아이티',
+                    200,'영업팀',
+                    300,'관리팀',
+                    '기타부서') as부서이름
+from t_emp;
+
+select empno, ename , deptno, decode(deptno, 10 , '인사부',
+                                             20 , '관리부',
+                                             30 , '회계부',
+                                             40 , '일반부서',
+                                             'ETC')as 부서이름
+from emp;
+
+create table t_emp2(
+    id number(2),
+    jumin char(7) -- char 고정길이 문자열  -- data가 고정적일때 사용하는 타입  (// varchar 가변길이 문자열)
+);
+
+desc t_emp2;
+insert into t_emp2(id,jumin) values(1,'1234567');
+insert into t_emp2(id,jumin) values(2,'2234567');
+insert into t_emp2(id,jumin) values(3,'3234567');
+insert into t_emp2(id,jumin) values(4,'4234567');
+insert into t_emp2(id,jumin) values(5,'5234567');
+commit;
+
+select * from t_emp2;
+
+/*
+
+t_emp2 테이블에서 id, jumin 데이터를 출력하되 jumin컬럼의 앞자리가 
+1이면 남성, 2이면 여성, 3이면 중성 기외는 기타.
+*/
+
+select id, jumin, decode( substr(jumin,1,1) , 1,'남성',
+                                          2,'여성',
+                                          3,'중성',
+                                         '기타')as 성별
+from t_emp2;
+
+
+--if안에 if 올 수 있다.
+--decode 안에 decode 가질 수 있다
+--decode(decode())
+
+/* 응용문제
+부서번호가 20번인 사원중에서 SMITH 라는 이름을 가진 사원이라면 HELLO
+부서번호가 20번인 사원중에서 SMITH 라는 이름을 가진 사원이 아니라면 WORLD
+부서번호가 20번이 아이면 ETC
+*/
+select empno, ename, decode(empno,20,decode(ename ,'SMITH', 'HELLO','WORLD'),
+                                        'ETC')from emp;
+                                        
+--CASE 문
+/*
+
+CASE 조건식 WHEN 결과1 THEN 출력1
+           WHEN 결과2 THEN 출력2
+           WHEN 결과3 THEN 출력3
+           WHEN 결과4 THEN 출력4
+           ELSE 출력5
+from "컬럼명"
+*/
+
+create table t_zip(
+    zipcode number(10)
+);
+
+desc t_zip;
+
+insert into t_zip(zipcode) values(2);
+insert into t_zip(zipcode) values(31);
+insert into t_zip(zipcode) values(16);
+insert into t_zip(zipcode) values(45);
+commit;
+
+select * from t_zip;
+
+select '0' || to_char(zipcode) ,case zipcode when 2  then '서울'
+                                             when 31 then '경기'
+                                             when 16 then '폰'
+                                             when 45 then '제주'
+                                             else '기타'
+                                end 지역이름
+from t_zip;
+
+
+/*
+
+사원테이블 사원급여가 1000 이하면 급
+2000 3급 , 3000 2급 , 4000 1급, 위로 특급
+
+CASE 조건식 WHEN 결과1 THEN 출력1.
+
+2. 조건식이 필요하다면
+case when 조건 비교식 then 결과,
+case when 조건 비교식 then 결과,
+case when 조건 비교식 then 결과,
+else
+*/
+select * from emp;
+
+select ename, sal, deptno, case  when sal <=1000 then '4급'
+                                when sal between 1001 and 2000 then '3급'
+                                when sal between 2001 and 3000 then '2급'
+                                when sal between 3001 and 4000 then '1급'
+                                else '특급'
+                                end 등급
+from emp;
+
+select ename, sal, deptno, case when sal <=1000 then '4급'
+                                when sal >1000 and sal <=2000 then '3급'
+                                when sal >2000 and sal <=3000 then '2급'
+                                when sal >3000 and sal <=4000 then '1급'
+                                else '특급'
+                                end 등급
+from emp;
+--------------------------------------------------------------------------
+--문자함수, 숫자함수, 날짜함수, 변환함수, 일반함수 (nvl, decode, case)
+--------------------------------------------------------------------------
+--pdf교재 75page
+
+--집계함수(그룹)
+/*
+1. count(*) >> row수 , count(컬럼명)>> 데이터 건수
+2. sum()
+3. avg()
+4. max()
+5. min()
+기타
+
+1. 집계함수는 group by 결과 같이 사용
+2. 모든 집계함수는 null 값을 무시한다
+3. select 절에 집계함수 이외에 다른 column이 오면 반드시 그 러럼은 group by 절에 명시
+*/
+
+select count(*) from emp; -- 14개의 row 데이의 개수
+
+select count(empno) from emp; --14개
+
+select count(comm) from emp; --집계함수는 null값을 인지하지 못한다. null이 아닌 데이터만 카운팅한다.
+
+select count(nvl(comm,0)) from emp; --14건 nvl로 null을 0으로 채웠기 때문에 count 됨.
+
+--급여의 합
+select sum(sal) from emp;
+
+select trunc(avg(sal)) from emp;
+
+--사장님 .... 총 수당이 얼마나 지급되었나?
+
+select sum(comm) from emp;
+
+--수당의 평균은 얼마지?
+
+select trunc(avg(comm)) from emp; --721
+
+select comm from emp;
+
+
+select (300+200+30+300+3500+0)/6 from dual; --null을 무시하기 때문에 comm이 없는 직원의 수는 고려하지 않음
+
+select (300+200+30+300+3500+0)/6 from dual;
+select trunc(avg(nvl(comm,0)))from emp;
+
+--comm 이 있는 사원들만의 평균, comm이 없는 사원도 포함된 평균 모두 맞다. (기준에 따라 달라진다)
+
+-- 결론 : null에 대한 고민이 필요하다!!
+
+select max(sal) from emp;
+select min(sal) from emp;
+
+select sum(sal), avg(sal), max(sal), min(sal), count(sal) -- 각각의 데이터가 1건이기 때문에 실행 가능하다
+from emp;
+
+select empno, count(empno) from emp;  --"not a single-group group function"
+
+
+--부서별 평균 급여를 구하세요
+select deptno, avg(sal)
+from emp
+group by deptno;
+
+
+--직종별 평균 급여
+select job , avg(sal)
+from emp
+group by job; -- 문법적인 오류는 없지만 (판단 할 수 없다.)\\
+
+select job, avg(sal), sum(sal),max(sal),min,(sal)count(sal)
+from emp
+group by job
+
+-- group
+-- disctinct 컬럼명1. 컬럼명2
+-- order by 럴럼명1. 컬럼명2
+
+-- 부서별 직종별 급여의 합을 구하셍
+
+select deptno, job, sum(sal), count(sal)
+from emp
+group by deptno, job
+order by deptno; --부서번호 ..그안에서 작품별 그룹 ... 합계
+/*
+select 절        4
+from 절          1
+where 절         2
+group by 절      3
+order by 절      5
+*/
+
+-- 직종별 평균급여가 3000 달러 이상인 직종과 평균 급여를 출력하세
+
+--select deptno, ename, job ,avg(sal)
+--from emp
+--where avg(sal) >=3000;
+
+select job, avg(sal)
+from emp
+group by job
+having avg(sal) >=3000;
+
+--from 절의 조건절 >> where
+-- group by 절의 조건절 >> having (집계함수 조건을 쳐라)
+
+/*
+select 절        5
+from 절          1
+where 절         2
+group by 절      3
+having 절        4
+order by 절      6
+
+단일 테이블에 처리할 수 있는 모든 구문
+*/
+
+
+/* 사원테이블에서 직종별 급여합을 출력하되 수당은 지급받고 급여의 합이 5000 이상인
+사원들의 목록을 출력하시ㅇ. (comm 0인 사원도 받는 것으로 취급)
+급여의 합이 낮은 순으로 출력하시오
+*/
+select job ,sum(sal) as sumsal
+from emp
+where comm is not null
+group by job
+having sum(sal) >=5000
+order by sumsal asc;
+
+/*
+사원테이블에서 부서 인원이 4명보다 많은 부서의 부서번호, 인원수, 급여의 합을 출력하시오.
+*/
+select * from emp;
+
+select deptno, count(deptno), sum(sal)
+from emp
+group by deptno
+having count(*) >4;
+-- select count(*) from emp where job is null; -- null 여부 확인하자
+
+
+/*
+사원테이블에서 직종별 급여의 합이 5000를 초과하는 직종과 급여의 합을 출력하세요
+단 판매직종 은 제외하고 급여의 합으로 내림차순 정렬하시오
+*/
+select job, sum(sal) 
+from emp
+where job != 'SALESMAN'
+group by job
+having sum(sal) >5000
+order by sum(sal) desc;
+
+/*
+HR 계정으로 이동하세요
+
+1. EMPLOYEES 테이블을 이용하여 다음 조건에 만족하는 행을 검색하세요. 
+2005년이후에 입사한 사원 중에 부서번호가 있고, 급여가 5000~10000 사이인 사원을 검색합니다. 
+가) 테이블 : employees 
+나) 검색 : employee_id, last_name, hire_date, job_id, salary, department_id 
+다) 조건
+    ① 2005년 1월 1일 이후 입사한 사원
+    ② 부서번호가 NULL이 아닌 사원 
+    ③ 급여가 5,000보다 크거나 같고, 10,000 보다 작거나 같은 사원 
+    ④ 위의 조건을 모두 만족하는 행을 검색 
+라) 정렬: department_id 오름차순, salary 내림차순
+*/
+select * from employees;
+select employee_id, last_name,hire_date, salary
+from employees
+where department_id is not null 
+        and SALARY between 5000 and 10000 
+        and hire_date > to_date('2005-01-01') -- hire_date > '2005/01/01'
+order by department_id asc , salary desc;
+
+
+/*
+2. EMPLOYEES 테이블을 이용하여 다음 조건에 만족하는 행을 검색하세요. 
+부서번호가 있고, 부서별 근무 인원수가 2명 이상인 행을 검색하여 부서별 최대 급여와 최소 급여를 계산하
+고 그 차이를 검색합니다. 
+가) 테이블 : employees 
+나) 검색 : department_id, MAX(salary), MIN(salary), difference 
+        - MAX(salary) 와 MIN(salary)의 차이를 DIFFERENCE로 검색 
+다) 조건
+    ① 부서번호가 NULL이 아닌 사원 
+    ② 부서별 근무 인원수가 2명 이상인 집합 
+라) 그룹 : 부서번호가 같은 행
+마) 정렬 : department_id 
+*/
+select * from employees;
+
+select department_id, MAX(salary), MIN(salary), MAX(salary)-MIN(salary) as difference
+from employees
+where department_id is not null 
+group by department_id
+having count(*) >=2
+order by department_id;
+show user;
+
+-----------------------------------------------------------------------------------------
+--단일 테이블 쿼리 END---------------------------------------------------------------------
+
+--ETC
+--create table 테이블명 (컬럼명 타입, 컬럼명 타입)
+create table member3(age number);
+
+--데이터 1건
+insert into member3(age) values (100);
+
+--데이터 여러건
+insert into member3(age) values (200);
+insert into member3(age) values (300);
+insert into member3(age) values (400);
+
+------------------------------------------------------------------------
+/*
+JAVA
+class Member3 { private int age; setter, getter}
+
+--1건
+Member3 member = new Member3()
+member.setAge(100);
+
+-- 다수의 데이터
+List<Member3> mlist = new ArrayList<>();
+mlist.add(new Member3(100));
+mlist.add(new Member3(200));
+mlist.add(new Member3(300));
+
+
+데이터 타입
+문자열 데이터 타입
+char(10)    >>10byte >> 한글 5자, 영문자, 특수, 공백 10자 >> 고정길이 문자열
+varchar(10) >>10byte >> 한글 5자, 영문자, 특수, 공백 10자 >> 가변길이 문자열
+
+고정길이 (데이터와 상관없이 크기를 갖는것)
+가변길이 (들어오는 데이터 크기만큼 확보)
+
+char(10) >> 'abc' >> [a][b][c][][][][][][][] >> 공간의 크기는 변화가 없다
+varchar2(10) >> 'abc' >>[a][b][c] >> 데이터 크기 만큼 공간 확보
+
+데이터 검색에 있어서 >> char() 가 더 성능이 좋다. >> 고정길이.... 가변보다는 좀 앞서서 검색
+
+char 와 varchar의 사용
+
+char(2) : 고정길이 ex) 남,여 ... 대,중,소 ... 주민번호.... << 검색성능이 좋다
+varchar : 사람의 이름, 취미,주소 ...  <<입력받을 데이터의 크기를 예측할 수 없을 때.
+
+한글, 영어권 >> 한문자 >> unicode >>한글, 영문 >> 2byte >>nchar 한문자의 크기를 고정으로 /타입이 가지는 숫자는 문자의 길이
+
+nchar(20) >> 20자 >> 영어 특수문자 공백 상관없이 20자를 기본으로 한다 >> 40byte
+nvarchar2(20) >> 20자
 
 
 
 
 
+*/
 
+--오라클 함수 ......
+select * from SYS.NLS_DATABASE_PARAMETERS;
+--NLS_CHARACTERSET  : 	AL32UTF8  한글 3byte 인식
+--KO16KSC5601 2Byte (현재 변환하면 한글 다깨짐)
+select * from nls_database_parameters where parameter like '%CHAR%';
+------------------------------------------------------------------------------
+create table test2(name varchar2(2));
 
+insert into test2(name) values('a');
+insert into test2(name) values('aa');
+insert into test2(name) values('가'); --한글 1자 3byte 인지 // 오라클 영문판 // 이럴수도 있다? 고민해야할 수 도 있다>?
+-------------------------------------------------------------------------------
+?-- 오라클 pdf 파일 5장
+/*
+--JOIN
+Cartesian Product   모든 가능한 행들의 Join
+Equijoin Join       조건이 정확히 일치하는 경우 사용(일반적으로 PK 와 FK 사용)
+Non-Equijoin Join   조건이 정확히 일치하지 않는 경우에 사용(등급,학점)
+Outer Join Join     조건이 정확히 일치하지 않는 경우에도 모든 행들을 출력
+Self Join           하나의 테이블에서 행들을 Join 하고자 할 경우에 사용
+Set Operators       여러 개의 SELECT 문장을 연결하여 작성한다
 
+Equijoin
+Non-Equijoin
+Outer Join
+Self Join
 
+관계형 DB (RDBMS)
 
+관계 (테이블과 테이블의 관계)
+(클래스 (자바) 비교) >> 연관관계 존재 
 
+1:1
+1:N (70%)
+M:N
 
+create table M (M1 char(6) , M2 char(10));
+create table S (S1 char(6) , S2 char(10));
+create table X (X1 char(6) , X2 char(10));
 
+insert into M values('A','1');
+insert into M values('B','1');
+insert into M values('C','3');
+insert into M values(null,'3');
+commit;
 
+insert into S values('A','X');
+insert into S values('B','Y');
+insert into S values(null,'Z');
+commit;
 
+insert into X values('A','DATA');
+commit;
 
+*/
 
+show user;
 
+select * from M;
+select * from S;
+select * from X;1
 
+--1. 등가조인 (equi join)
+--원테이블과 대응되는 테이블에 있는 컬럼의 데이터를 1:1 매핑
+--SQL JOIN 문법 (오라클) 간단
+--ANSI 문법(권장) >> 다른 SQL에서도 공통적임 >> [inner]join  on 조건절
 
+select * 
+from m, s
+where m.m1 = s.s1;
 
+--기본 SQL 문법
+select m.m1 , m.m2, s.s2
+from m, s
+where m.m1 = s.s1;
+
+--ANSI (표준문법)
+select *
+from m join s -- m inner join s
+on m.m1 = s.s1;
+
+select * from emp;
+
+-- 사원번호, 사원이름, 부서번호, 부서이름을 출력하세요
+select emp.empno, emp.ename, emp.deptno, dept.dname
+from emp join dept
+on emp.deptno = dept.deptno;
+
+--현업에서는 table이름이 길다
+--현업 (테이블 가명칭 부여)
+select e.empno, e.ename, e.deptno, d.dname
+from emp e join dept d
+on e.deptno = d.deptno;
+
+--***조인은 select * 하고 나서 컬럼을 명시
+select s.s1, s.s2, x.x2
+from s join x
+on s.s1 = x.x1;
+--테이블과 테이블의 컬럼이 1대1 매핑 :등가조인
