@@ -991,6 +991,10 @@ select * from emp_audit;
 
 rollback;
 
+
+
+
+
 -- for each row 선언 했을 때(명령어 한 번에 변경된 행만큼 기록된다.)
 create or replace trigger emp_audit_tr
  after insert or update or delete on emp2
@@ -1074,7 +1078,7 @@ create table tri_order
 create or replace trigger trigger_order
 before insert on tri_order
 BEGIN
-  IF(to_char(sysdate,'HH24:MM') not between '11:00' and '16:00') THEN
+  IF(to_char(sysdate,'HH24:MM') not between '11:00' and '18:00') THEN
      RAISE_APPLICATION_ERROR(-20002, '허용시간 오류 쉬세요');
   END IF;
 END;
