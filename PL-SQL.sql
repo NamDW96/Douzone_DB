@@ -598,8 +598,7 @@ is
   BEGIN
     update emp
     set sal = 0
-    where empno = vempno;
-    
+    where empno = vempno;    
   END;
 --실행방법
 exec usp_update_emp(7788);
@@ -628,11 +627,11 @@ exec usp_getemplist(7902);
 exec usp_getemplist(7788);
 --------------------------------------------------------------------------------
 -- procedure  는 parameter  종류 2가지
---1. input paramter : 사용시 반드시  입력          (IN : 생략하는 default)
+--1. input paramter : 사용시 반드시  입력!!!          (IN : 생략하는 default)
 --2. output parmater : 사용시 입력값을 받지 않아요 (OUT)
 create or replace procedure app_get_emplist
 (
-  vempno IN emp.empno%TYPE,
+  vempno IN emp.empno%TYPE, -- vempo emp.empno%TYPE <- default로 input임.
   vename OUT emp.ename%TYPE,
   vsal   OUT emp.sal%TYPE
 )
@@ -653,7 +652,8 @@ BEGIN
    DBMS_OUTPUT.put_line('출력값 : ' || out_ename || '-' || out_sal);
 END;
 
-
+--input parameter 는 반드시 값을 입력해야된다.
+--output parameter는 출력을 지정해줘야한다.
 
 
 
@@ -678,6 +678,35 @@ add constraint pk_usp_emp_empno primary key(empno);
 
 select * from SYS.USER_CONSTRAINTS where table_name='USP_EMP';
 
+------------------------------prosedure 만들기 ---------------------------------
+-- 날짜를 2개 입력받아서 그 날짜 사이에 입사한 사원의 정보를 확인하는 procedure
+
+--여러건의 데이터가 조회될 때, JDBC 작업을 하려면 out 은 refcursor를 사용
+
+create or replace procedure date_EmpList
+(
+	start_date IN varchar2,
+	end_date IN varchar2,
+	list_cursor out SYS_REFCURSOR --약속된 표현
+)
+IS
+BEGIN
+	OPEN list_cursor FOR 
+        SELECT empno, ename, sal , hiredate 
+	    FROM emp
+	    Where hiredate Between to_date(start_date,'YYYY-MM-DD') and to_date(end_date,'YYYY-MM-DD')
+	    ORDER BY hiredate desc;
+        
+        exception --예외처리
+        when others then
+            DBMS_OUTPUT.PUT_LINE('SQL ERROR MESSAGE' || SQLERRM);
+	END;
+    
+    var out_cursor REFCURSOR
+    exec date_EmpList('1980-12-12','1981-12-27',:out_cursor)
+    print out_cursor;
+
+------------------------------prosedure 만들기 ---------------------------------
 
 
 CREATE OR REPLACE PROCEDURE usp_insert_emp
@@ -700,7 +729,7 @@ CREATE OR REPLACE PROCEDURE usp_insert_emp
 DECLARE
   out_msg varchar2(200);
 BEGIN
-   usp_insert_emp(7902,'홍길동','IT',out_msg);
+   usp_insert_emp(9999,'홍길동','IT',out_msg);
    DBMS_OUTPUT.put_line('출력값 : ' || out_msg);
 END;
 ---------------------기본 procedure END-----------------------------------------
@@ -711,7 +740,7 @@ END;
 --사용자 정의 함수 paramter  정의 , return 값
 create or replace function f_max_sal
 (s_deptno emp.deptno%TYPE)
-return number   -- public int f_max_sal(int deptno) {  return 10}
+return number-- 타입의 int   -- public int f_max_sal(int deptno) {  return 10}
 is
   max_sal emp.sal%TYPE;
 BEGIN
@@ -848,7 +877,7 @@ as
 select * from tri_emp;
 
 create or replace trigger tri_01
-after insert on tri_emp
+after insert on tri_emp --tri_emp 테이블에 insert 작업이 이루어진 후
 BEGIN -- 자동 동작할 내용
     DBMS_OUTPUT.PUT_LINE('신입사원 입사');
 END;
@@ -890,7 +919,12 @@ END;
 insert into tri_emp values(200,'홍길동');
 update tri_emp set ename='변경' where empno= 200;
 delete from tri_emp where empno=200;
+
+
+
+
 -----------------------------------------------------------------------------
+----------------- Project 할 때 사용하면 좋은 부분 -----------------------------
 --예제1) 테이블에 INSERT, UPDATE, DELETE 를 할 때 user, 구분(I,U,D), sysdate 를 기록하는 
 --테이블(emp_audit)에 내용을 저장한다.
 --FOR EACH ROW 이 옵션을 사용하면 
@@ -922,12 +956,14 @@ drop table emp2;
 create table emp2
 as
     select * from emp;
+    
+desc emp2;
 
 create or replace trigger emp_audit_tr
  after insert or update or delete on emp2
- --for each row
+ --for each row --변경된 건수만큼 trigger동작 되서 주석;
 begin
- if inserting then
+ if inserting then --inserting 예약어
       insert into emp_audit
       values(emp_audit_tr.nextval, user, 'inserting', sysdate);
  elsif updating then
@@ -939,9 +975,10 @@ begin
  end if;
 end;
 
--- for each row 선언 안했을 때 (명령어 한 번에 대하여 한 건으로 기록된다.)
+-- for each row -- 선언 안했을 때 (명령어 한 번에 대하여 한 건으로 기록된다.)
 select * from emp2;
 rollback;
+
 update emp2 
 set deptno = 20
 where deptno = 10;
