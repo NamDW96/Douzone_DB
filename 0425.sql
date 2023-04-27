@@ -131,6 +131,7 @@ SELECT job
 
 
 
+
 --직종별 
 --직종별 , 부서별 급여 합계
 --select job , deptno ,sum(sal) from emp group by job , deptno order by job
@@ -142,3 +143,230 @@ pivot (
         sum(sal) for deptno  in ('10' as d10 , '20' as d20 , '30' as d30)    
       );  
 
+---------------------------------------------------------------------------------
+select deptno, job , sal from emp;
+
+select * 
+from (
+        select deptno, job , sal from emp
+     )
+pivot (sum(sal) for job in ('PRISIDENT' as p, 'ANALYST' as a, 'MANAGER' as m, 'SALESMAN' as s , 'CLERK' as c));
+
+--Quiz
+-- 동일한 결과 decode를 생성하세요
+
+SELECT deptno
+     , SUM(DECODE(job, 'PRISIDENT', sal, null)) "p" 
+     , SUM(DECODE(job, 'ANALYST', sal, null)) "a" 
+     , SUM(DECODE(job, 'MANAGER', sal, null)) "m" 
+     , SUM(DECODE(job, 'SALESMAN', sal, null)) "s" 
+     , SUM(DECODE(job, 'CLERK', sal, null)) "c" 
+  FROM emp 
+ GROUP BY deptno;     
+
+SELECT deptno 
+     , DECODE(job, 'PRISIDENT', sal)as "p" 
+     , DECODE(job, 'ANALYST', sal)as "a" 
+     , DECODE(job, 'MANAGER', sal)as "m" 
+     , DECODE(job, 'SALESMAN', sal)as "s" 
+     , DECODE(job, 'CLERK', sal)as "c" 
+  FROM emp ;
+ 
+-- 동일한 결과 case를 생성
+select deptno , sum(case when job = 'PRESIDENT' then sal else null end) as p,
+                sum(case when job = 'ANALYST' then sal else null end) as a,
+                sum(case when job = 'MANAGER' then sal else null end) as m,
+                sum(case when job = 'SALESMAN' then sal else null end) as s,
+                sum(case when job = 'CLERK' then sal else null end) as c
+from emp
+group by deptno;
+
+--------------------------------------------------------------------------------
+--사원테이블에서 부서별 급여합계와 전체급여합을 출력하세요.
+
+select dpetno,sum(sal)
+from emp
+group by deptno;
+
+select sum(sal) from emp;
+
+select deptno, sum(sal) from emp group by deptno
+union all
+select null , sum(sal) from emp;
+--------------------------------------------------------------------------------
+--Rollup, Cube 소개 (레포팅, 출력 : GLAP)
+--다차원 분석 쿼리에 사용 (소개를 만드는 방법)
+
+select job, deptno, sum(sal), count(sal)
+from emp
+group by job, deptno
+order by job, deptno;
+
+select job, sum(sal)
+from emp
+group by rollup(job); --직종별 급여의 합을 구하고, 모든 직종의 그병의 합도 구한다.
+
+select job , deptno, sum(sal)
+from emp
+group by rollup(job, deptno);  -- 우측 끝 컬럼에서부터 소계에서 제외
+
+/*
+CLERK   	10	1300
+CLERK	    20	1900
+CLERK	    30	950
+CLERK	      	4150 --CLERK 의 합 (소계)
+ANALYST	    20	6000
+ANALYST		    6000 --ANALYST 의 합 (소계)
+MANAGER		10  2450
+MANAGER		20  2975
+MANAGER		30  2850
+MANAGER		    8275      --(소계)
+SALESMAN	30	5600 
+SALESMAN		5600      --(소계)
+PRESIDENT	10	5000
+PRESIDENT		5000      --(소계)
+		       29025
+*/
+
+select deptno, job , sum(sal)
+from emp
+group by rollup(deptno, job);
+-------------------------------------------------------------------
+
+select job, deptno, sum(sal), count(sal)
+from emp
+group by job, deptno
+order by job, deptno;
+
+-- 기준 소계 : deptno 별 소개, job 별 소개, 전체합
+
+select deptno, job, sum(sal)
+from emp
+group by deptno, job
+union all
+select deptno, null, sum(sal)
+from emp
+group by deptno
+union all
+select null, job, sum(sal)
+from emp
+group by job
+union all
+select null, null, sum(sal)
+from emp;
+
+-- 복잡한 쿼리(union), rollup(모든 컬럼의 집계는 안된다) >> cube >> 모든 컬럼의 소계
+select deptno, job , sum(sal)
+from emp
+group by cube(deptno, job)
+order by deptno, job;
+
+--------------------------------------------------------------------------------
+-- 순위 함수 
+--rownum (select 한 결과에 순번 처리)
+--RANK
+--DENSE_RANK
+--순위가 동일한 결과 ( 같은 점수가 여러명 ) (100,90,80) (1,2,3 등) (100,80,80,60)(1등,2등,2등,3?4?등) 에 대한 내용
+select * from emp;
+
+select ename, sal,
+rank() over(order by sal desc) as 순위,           --1 2 2 4
+dense_rank() over(order by sal desc) as 순위2     --1 2 2 3
+from emp
+order by sal desc;
+/*
+동률을 줄이는 방법 - 기준을 더 만들어서 적용
+*/
+
+select ename, sal, comm,hiredate,
+rank() over(order by sal desc, comm desc, hiredate desc) as 순위  -- 기준을 추가 .. --더 많은 기준
+from emp
+order by sal desc;
+
+--조건 그룹안에서 순위 정하기
+--A 조 순위매기기 B group 순위매기기
+
+select job, ename, sal, comm,
+       rank() over(partition by job order by sal desc, comm desc) as 그룹순위
+from emp
+order by job asc, sal desc, comm desc;
+
+-- 집계 함수 (단점 : select 절 집계함수 이외에 나머지 컬럼은 group by 절)
+-- in line view (서브쿼리) JOIN
+-- create view 가상테이블  JOIN
+
+select job, sum(sal), count(sal)
+from emp
+where job in('MANAGER','SALESMAN')
+group by job
+order by job;
+--이름, 사번 이 궁금해 (그룹에서는 불가능)
+
+select empno, job, sum(sal), count(sal) (X)
+
+--단점 해결
+select empno, ename, job, sum(sal) over (partition by job)
+from emp
+where job in('MANAGER','SALESMAN')
+order by job;
+
+
+-- with절
+--PARTITION BY https://cafe.naver.com/erpzone/501
+----------------------------------
+--JDBC 활용 프로시져 만들기
+create or replace procedure usp_EmpList
+(
+    p_sal IN number,
+    p_cursor OUT SYS_REFCURSOR -- APP 사용하기 타입
+)
+is
+    begin
+        open p_cursor
+        for select empno, ename, sal from emp where sal> p_sal;       
+    end;
+    
+    
+    
+---------------------------------------------------------------------------------
+--JDBC
+--JDBC 활용 프로시져 만들기
+create or replace procedure usp_EmpList
+(
+  p_sal IN number,
+  p_cursor OUT SYS_REFCURSOR -- APP 사용하기 타입
+)
+is
+    begin
+        open p_cursor 
+        for select empno, ename ,sal from emp where sal > p_sal;
+    end;
+
+    var out_cursor REFCURSOR
+    exec usp_EmpList(3000,:out_cursor)
+    print out_cursor;
+
+create or replace procedure usp_Insert_Emp
+(
+    vempno IN emp.empno%TYPE,
+    vname IN emp.ename%TYPE,
+    vjob IN emp.job%TYPE,
+    p_outmsg OUT varchar2
+)
+is 
+    begin
+        insert into emp(empno,ename,job) values(vempno,vname,vjob);
+        commit;
+        p_outmsg := 'success';
+        EXCEPTION WHEN OTHERS THEN
+        p_outmsg := SQLERRM;
+        rollback;
+    end;
+    
+alter table emp
+add constraint pk_emp_empno primary key(empno);
+
+select * from user_constraints where table_name ='EMP';
+    
+    
+    

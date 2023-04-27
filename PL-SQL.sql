@@ -678,7 +678,7 @@ add constraint pk_usp_emp_empno primary key(empno);
 
 select * from SYS.USER_CONSTRAINTS where table_name='USP_EMP';
 
-------------------------------prosedure 만들기 ---------------------------------
+------------------------------procedure 만들기 ---------------------------------
 -- 날짜를 2개 입력받아서 그 날짜 사이에 입사한 사원의 정보를 확인하는 procedure
 
 --여러건의 데이터가 조회될 때, JDBC 작업을 하려면 out 은 refcursor를 사용
@@ -706,7 +706,7 @@ BEGIN
     exec date_EmpList('1980-12-12','1981-12-27',:out_cursor)
     print out_cursor;
 
-------------------------------prosedure 만들기 ---------------------------------
+------------------------------procedure 만들기 ---------------------------------
 
 
 CREATE OR REPLACE PROCEDURE usp_insert_emp
@@ -1180,6 +1180,7 @@ delete from t_01 where no=1;
 select* from t_01;
 select* from t_02;
 
-commit
+commit;
 --------------------------------------------------------------------------------
 -- 고생했다 토닥 토닥 ---------------------------------------------------------------------
+
