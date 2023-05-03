@@ -369,4 +369,6 @@ add constraint pk_emp_empno primary key(empno);
 select * from user_constraints where table_name ='EMP';
     
     
+    drop table emp2;
     
+select * from d_dept;

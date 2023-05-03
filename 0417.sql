@@ -481,7 +481,7 @@ order by job;
 
 
 
-
+select * from d_dept;
 
 
 
@@ -930,6 +930,11 @@ select sysdate from dual;
 --3. Date - Date   >> Number  (ÀÏ¼ö) ^^
 
 select sysdate + 100 from dual;
+select months_between((select hiredate from emp where empno=7369),sysdate) from dual;
+select (select hiredate from emp where empno=7369) - sysdate  from dual;
+select months_between(sysdate,(select start_date from emp_hol where honum=?)) from dual;
+select * from emp;
+select hiredate from emp where empno=7369;
 select sysdate + 1000 from dual;
 select sysdate - 1000 from dual;
 
